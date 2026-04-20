@@ -66,20 +66,7 @@ fun AppScaffold(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            TabRow(selectedTabIndex = selected) {
-                Tab(
-                    selected = selected == 0,
-                    onClick = { selected = 0 },
-                    text = { Text("Ler") },
-                    modifier = Modifier.semantics { testTag = AppTags.TAB_READ }
-                )
-                Tab(
-                    selected = selected == 1,
-                    onClick = { selected = 1 },
-                    text = { Text("Histórico") },
-                    modifier = Modifier.semantics { testTag = AppTags.TAB_HISTORY }
-                )
-            }
+            TabBar(selected = selected, onTabSelected = { selected = it })
 
             if (debugEnabled) {
                 DebugInfoPanel(
@@ -92,5 +79,23 @@ fun AppScaffold(
                 else -> HistoryScreen(items = history, onClear = viewModel::clearHistory)
             }
         }
+    }
+}
+
+@Composable
+private fun TabBar(selected: Int, onTabSelected: (Int) -> Unit) {
+    TabRow(selectedTabIndex = selected) {
+        Tab(
+            selected = selected == 0,
+            onClick = { onTabSelected(0) },
+            text = { Text("Ler") },
+            modifier = Modifier.semantics { testTag = AppTags.TAB_READ }
+        )
+        Tab(
+            selected = selected == 1,
+            onClick = { onTabSelected(1) },
+            text = { Text("Histórico") },
+            modifier = Modifier.semantics { testTag = AppTags.TAB_HISTORY }
+        )
     }
 }

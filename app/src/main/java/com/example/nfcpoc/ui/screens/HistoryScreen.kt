@@ -47,15 +47,7 @@ fun HistoryScreen(
     var showConfirm by remember { mutableStateOf(false) }
 
     if (items.isEmpty()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding)
-                .semantics { testTag = HistoryTags.EMPTY },
-            contentAlignment = Alignment.Center
-        ) {
-            Text("Nenhuma leitura ainda")
-        }
+        EmptyHistoryMessage(contentPadding)
         return
     }
 
@@ -81,46 +73,67 @@ fun HistoryScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(items, key = { it.id }) { entity ->
-                Card(modifier = Modifier.semantics { testTag = HistoryTags.row(entity.id) }) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(entity.tagValue, style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            "Status: ${entity.syncStatus}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(
-                            DateFormat.getDateTimeInstance().format(Date(entity.readAt)),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        entity.apiResponse?.let {
-                            Text("API: $it", style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                }
+                HistoryItem(entity)
             }
         }
     }
 
     if (showConfirm) {
-        AlertDialog(
-            onDismissRequest = { showConfirm = false },
-            title = { Text("Limpar histórico?") },
-            text = { Text("Todas as ${items.size} leituras salvas serão removidas. Esta ação não pode ser desfeita.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showConfirm = false
-                        onClear()
-                    },
-                    modifier = Modifier.semantics { testTag = HistoryTags.CLEAR_CONFIRM }
-                ) { Text("Limpar") }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showConfirm = false },
-                    modifier = Modifier.semantics { testTag = HistoryTags.CLEAR_CANCEL }
-                ) { Text("Cancelar") }
-            }
+        ClearHistoryDialog(
+            itemCount = items.size,
+            onConfirm = { showConfirm = false; onClear() },
+            onDismiss = { showConfirm = false }
         )
     }
+}
+
+@Composable
+private fun EmptyHistoryMessage(contentPadding: PaddingValues) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding)
+            .semantics { testTag = HistoryTags.EMPTY },
+        contentAlignment = Alignment.Center
+    ) {
+        Text("Nenhuma leitura ainda")
+    }
+}
+
+@Composable
+private fun HistoryItem(entity: TagEntity) {
+    Card(modifier = Modifier.semantics { testTag = HistoryTags.row(entity.id) }) {
+        Column(Modifier.padding(12.dp)) {
+            Text(entity.tagValue, style = MaterialTheme.typography.titleMedium)
+            Text("Status: ${entity.syncStatus}", style = MaterialTheme.typography.bodySmall)
+            Text(
+                DateFormat.getDateTimeInstance().format(Date(entity.readAt)),
+                style = MaterialTheme.typography.bodySmall
+            )
+            entity.apiResponse?.let {
+                Text("API: $it", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClearHistoryDialog(itemCount: Int, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Limpar histórico?") },
+        text = { Text("Todas as $itemCount leituras salvas serão removidas. Esta ação não pode ser desfeita.") },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                modifier = Modifier.semantics { testTag = HistoryTags.CLEAR_CONFIRM }
+            ) { Text("Limpar") }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.semantics { testTag = HistoryTags.CLEAR_CANCEL }
+            ) { Text("Cancelar") }
+        }
+    )
 }

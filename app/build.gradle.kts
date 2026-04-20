@@ -58,6 +58,18 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
+
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("pixel2api31") {
+                    device = "Pixel 2"
+                    apiLevel = 31
+                    systemImageSource = "google"
+                }
+            }
+        }
+    }
 }
 
 dependencies {

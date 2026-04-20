@@ -1,13 +1,13 @@
 package com.example.nfcpoc
 
-import android.app.PendingIntent
 import android.content.Intent
 import android.nfc.NfcAdapter
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import com.example.nfcpoc.nfc.IntentRouter
+import com.example.nfcpoc.nfc.NfcForegroundDispatch
 import com.example.nfcpoc.nfc.NfcReader
 import com.example.nfcpoc.ui.AppScaffold
 import com.example.nfcpoc.ui.theme.NfcPocTheme
@@ -20,54 +20,28 @@ class MainActivity : ComponentActivity() {
         TagViewModel.Factory(app.repository)
     }
 
-    private var nfcAdapter: NfcAdapter? = null
+    private val foregroundDispatch by lazy { NfcForegroundDispatch(NfcAdapter.getDefaultAdapter(this)) }
+    private val intentRouter by lazy { IntentRouter(NfcReader, viewModel::onTagRead) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
-
-        setContent {
-            NfcPocTheme {
-                AppScaffold(viewModel = viewModel)
-            }
-        }
-
-        handleIntent(intent)
+        setContent { NfcPocTheme { AppScaffold(viewModel = viewModel) } }
+        intentRouter.route(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleIntent(intent)
+        intentRouter.route(intent)
     }
 
     override fun onResume() {
         super.onResume()
-        val adapter = nfcAdapter ?: return
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-            pendingIntentFlags()
-        )
-        adapter.enableForegroundDispatch(this, pendingIntent, null, null)
+        foregroundDispatch.enable(this)
     }
 
     override fun onPause() {
         super.onPause()
-        nfcAdapter?.disableForegroundDispatch(this)
+        foregroundDispatch.disable(this)
     }
-
-    private fun handleIntent(intent: Intent?) {
-        if (intent == null) return
-        val value = NfcReader.extractValue(intent) ?: return
-        viewModel.onTagRead(value)
-    }
-
-    private fun pendingIntentFlags(): Int =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
 }
