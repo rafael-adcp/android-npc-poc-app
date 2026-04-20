@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">NFC POC</string>
-    <string name="read_prompt">Aproxime o cartão do celular</string>
-    <string name="tab_read">Ler</string>
-    <string name="tab_history">Histórico</string>
-    <string name="nfc_disabled">NFC desabilitado. Ative nas configurações.</string>
-    <string name="nfc_unavailable">Este dispositivo não possui NFC.</string>
-    <string name="open_settings">Abrir configurações</string>
 </resources>

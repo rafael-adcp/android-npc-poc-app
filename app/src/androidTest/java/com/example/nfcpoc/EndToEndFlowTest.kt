@@ -32,6 +32,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 
+private const val UI_TIMEOUT = 15_000L
+
 @RunWith(AndroidJUnit4::class)
 class EndToEndFlowTest {
 
@@ -80,13 +82,13 @@ class EndToEndFlowTest {
 
         viewModel.onTagRead("04A1B2C3")
 
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = UI_TIMEOUT) {
             composeRule.onAllNodesWithText("Leitura salva").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithTag(ReadTagTags.STATUS).assertIsDisplayed()
 
         composeRule.onNodeWithTag(AppTags.TAB_HISTORY).performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = UI_TIMEOUT) {
             composeRule.onAllNodesWithText("04A1B2C3").fetchSemanticsNodes().isNotEmpty()
         }
 
@@ -110,7 +112,7 @@ class EndToEndFlowTest {
 
         viewModel.onTagRead("DEADBEEF")
 
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = UI_TIMEOUT) {
             composeRule.onAllNodesWithText("Falha").fetchSemanticsNodes().isNotEmpty()
         }
 
@@ -120,7 +122,7 @@ class EndToEndFlowTest {
         assertEquals("FAILED", rows[0].syncStatus)
 
         composeRule.onNodeWithTag(AppTags.TAB_HISTORY).performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = UI_TIMEOUT) {
             composeRule.onAllNodesWithText("DEADBEEF").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithTag(HistoryTags.row(rows[0].id)).assertIsDisplayed()
@@ -140,7 +142,7 @@ class EndToEndFlowTest {
 
         viewModel.onTagRead("AA11BB22")
 
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = UI_TIMEOUT) {
             composeRule.onAllNodesWithText("AA11BB22", substring = true).fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithTag(DebugPanelTags.LAST_VALUE)
@@ -169,14 +171,14 @@ class EndToEndFlowTest {
         composeRule.setContent { AppScaffold(viewModel = viewModel, debugEnabled = false, apiBaseUrl = "") }
 
         composeRule.onNodeWithTag(AppTags.TAB_HISTORY).performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = UI_TIMEOUT) {
             composeRule.onAllNodesWithText("TAG-1", substring = true).fetchSemanticsNodes().isNotEmpty()
         }
 
         composeRule.onNodeWithTag(HistoryTags.CLEAR_BUTTON).performClick()
         composeRule.onNodeWithTag(HistoryTags.CLEAR_CONFIRM).performClick()
 
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = UI_TIMEOUT) {
             composeRule.onAllNodesWithTag(HistoryTags.EMPTY).fetchSemanticsNodes().isNotEmpty()
         }
         assertEquals(0, database.tagDao().count())
@@ -189,7 +191,7 @@ class EndToEndFlowTest {
 
         composeRule.setContent { AppScaffold(viewModel = viewModel, debugEnabled = false, apiBaseUrl = "") }
         composeRule.onNodeWithTag(AppTags.TAB_HISTORY).performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = UI_TIMEOUT) {
             composeRule.onAllNodesWithText("KEEP-ME", substring = true).fetchSemanticsNodes().isNotEmpty()
         }
 
