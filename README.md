@@ -1,7 +1,7 @@
 # Android NFC POC
 
 ![CI](https://github.com/rafael-adcp/android-npc-poc-app/actions/workflows/ci.yml/badge.svg?branch=main)
-![Coverage](https://img.shields.io/badge/coverage-79%25-yellow)
+![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)
 
 Aplicativo Android nativo (Kotlin + Jetpack Compose) que lê cartões/tags via **NFC**, envia o valor para uma **API REST** e armazena o resultado localmente em um banco **Room (SQLite)**.
 
