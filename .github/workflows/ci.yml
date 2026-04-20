@@ -10,6 +10,9 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   unit-tests:
     name: Unit tests, lint e build debug
@@ -94,12 +97,49 @@ jobs:
           profile: Nexus 6
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
-          script: ./gradlew connectedDebugAndroidTest --stacktrace
+          script: ./gradlew createDebugAndroidTestCoverageReport --stacktrace
+
+      - name: Extract coverage percentage
+        if: success()
+        id: coverage
+        run: |
+          REPORT="app/build/reports/coverage/androidTest/debug/connected/index.html"
+          if [ -f "$REPORT" ]; then
+            PCT=$(grep -oP 'class="ctr2">\K[0-9]+%' "$REPORT" | head -1 | tr -d '%')
+            echo "pct=$PCT" >> $GITHUB_OUTPUT
+            if [ "$PCT" -ge 80 ]; then COLOR=brightgreen
+            elif [ "$PCT" -ge 60 ]; then COLOR=yellow
+            else COLOR=red; fi
+            echo "color=$COLOR" >> $GITHUB_OUTPUT
+            echo "## 📊 Code Coverage: ${PCT}%" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "pct=0" >> $GITHUB_OUTPUT
+            echo "color=red" >> $GITHUB_OUTPUT
+            echo "## ⚠️ Coverage report not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Update coverage badge in README
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          PCT="${{ steps.coverage.outputs.pct }}"
+          COLOR="${{ steps.coverage.outputs.color }}"
+          sed -i "s|coverage-[0-9]*%25-[a-z]*|coverage-${PCT}%25-${COLOR}|" README.md
+          if git diff --quiet README.md; then
+            echo "Badge already up to date"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "ci: update coverage badge to ${PCT}%"
+            git push
+          fi
 
       - name: Upload instrumented test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: instrumented-test-reports-api-${{ matrix.api-level }}
-          path: app/build/reports/androidTests/
+          path: |
+            app/build/reports/androidTests/
+            app/build/reports/coverage/
           if-no-files-found: ignore
